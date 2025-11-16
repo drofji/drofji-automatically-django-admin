@@ -118,28 +118,38 @@ class AutoAdminModel(models.Model):
         if not cls.admin_enabled:
             return
 
+        # Get default admin fields from the model
         list_display, search_fields, list_filter = cls.get_admin_fields()
 
-        # Dynamic admin class
+        # Base attributes for the dynamic ModelAdmin
         admin_attrs = {
             "list_display": list_display,
             "search_fields": search_fields,
             "list_filter": list_filter,
-            "formatted_id": formatted_id,
-            "get_list_display": get_list_display,
-            # Attach CSS for faded zeros
+            "formatted_id": formatted_id,  # Custom ID formatting
+            "get_list_display": get_list_display,  # Replace "id" with formatted_id
             "Media": type("Media", (), {
                 "css": {"all": ("drofji_automatically_django_admin/admin.css",)},
                 "js": ("drofji_automatically_django_admin/admin.js",)
-            })
+            })  # Include custom CSS/JS for admin
         }
 
+        # -------------------------------------------------
+        # Apply model-defined admin overrides
+        # admin_overrides = { "method_or_attr_name": callable_or_value }
+        # -------------------------------------------------
+        overrides = getattr(cls, "admin_overrides", {})
+        for name, value in overrides.items():
+            admin_attrs[name] = value
+
+        # Create a dynamic ModelAdmin class
         admin_class = type(
             f"{cls.__name__}Admin",
             (admin.ModelAdmin,),
             admin_attrs
         )
 
+        # Register the model with Django admin
         try:
             admin.site.register(cls, admin_class)
         except admin.sites.AlreadyRegistered:

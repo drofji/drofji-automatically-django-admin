@@ -54,18 +54,43 @@ Add the following apps to your `INSTALLED_APPS` in `settings.py` (order matters)
 
 1. Inherit your models from `AutoAdminModel`:
 
-from django.db import models
-from drofji_automatically_django_admin.models import AutoAdminModel
-
 ```python
-class Customer(AutoAdminModel):
-    name = AutoAdminCharField(max_length=200, show_in_list=True, searchable=True)
-    email = AutoAdminEmailField(show_in_list=True, searchable=True)
-    age = AutoAdminIntegerField(filterable=True)
+from django.db import models
+from drofji_automatically_django_admin import drofji_models, drofji_fields
+
+class Customer(drofji_models.AutoAdminModel):
+    name = drofji_fields.AutoAdminCharField(max_length=200, show_in_list=True, searchable=True)
+    email = drofji_fields.AutoAdminEmailField(show_in_list=True, searchable=True)
+    age = drofji_fields.AutoAdminIntegerField(filterable=True)
 ```
 
 2. Admin sections will be automatically registered with list display, search, and filters.  
 3. IDs are formatted with leading zeros and styled automatically.  
+
+### Overriding Admin Methods
+
+You can override any `ModelAdmin` attribute or method directly from your model using `admin_overrides`:
+
+```python
+from django.utils.html import format_html
+from drofji_automatically_django_admin import drofji_models, drofji_fields
+
+class Customer(drofji_models.AutoAdminModel):
+    name = drofji_fields.AutoAdminCharField(max_length=200)
+
+    # Custom display method for admin
+    def bold_name(self, obj):
+        return format_html("<b>{}</b>", obj.name)
+
+    # Admin overrides
+    admin_overrides = {
+        "bold_name": bold_name,  # Add custom method
+        "list_display": ["formatted_id", "bold_name"]  # Override list_display
+    }
+```
+
+- This allows you to customize the admin without manually creating a separate `ModelAdmin` class.  
+- Works for methods like `get_queryset`, `save_model`, permissions, and any other `ModelAdmin` attributes.
 
 ## Recommendations
 
