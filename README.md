@@ -56,12 +56,13 @@ Add the following apps to your `INSTALLED_APPS` in `settings.py` (order matters)
 
 ```python
 from django.db import models
+from django.utils.translation import gettext_lazy as _
 from drofji_automatically_django_admin import drofji_models, drofji_fields
 
 class Customer(drofji_models.AutoAdminModel):
-    name = drofji_fields.AutoAdminCharField(max_length=200, show_in_list=True, searchable=True)
-    email = drofji_fields.AutoAdminEmailField(show_in_list=True, searchable=True)
-    age = drofji_fields.AutoAdminIntegerField(filterable=True)
+    name = drofji_fields.AutoAdminCharField(max_length=200, show_in_list=True, searchable=True, , verbose_name=_("Name"))
+    email = drofji_fields.AutoAdminEmailField(show_in_list=True, searchable=True, verbose_name=_("Email"))
+    age = drofji_fields.AutoAdminIntegerField(filterable=True, verbose_name=_("Age"))
 ```
 
 2. Admin sections will be automatically registered with list display, search, and filters.  
@@ -72,13 +73,16 @@ class Customer(drofji_models.AutoAdminModel):
 You can override any `ModelAdmin` attribute or method directly from your model using `admin_overrides`:
 
 ```python
+from django.contrib import admin
 from django.utils.html import format_html
+from django.utils.translation import gettext_lazy as _
 from drofji_automatically_django_admin import drofji_models, drofji_fields
 
 class Customer(drofji_models.AutoAdminModel):
-    name = drofji_fields.AutoAdminCharField(max_length=200)
+    name = drofji_fields.AutoAdminCharField(max_length=200, verbose_name=_("Name"))
 
     # Custom display method for admin
+    @admin.display(description=_("Name (Bold)"))
     def bold_name(self, obj):
         return format_html("<b>{}</b>", obj.name)
 

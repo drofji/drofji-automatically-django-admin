@@ -1,14 +1,34 @@
+from django.contrib import admin
+from django.utils.html import format_html
+from django.utils.translation import gettext_lazy as _
 from drofji_automatically_django_admin import fields, models
 
 
 class Product(models.AutoAdminModel):
-    name = fields.AutoAdminCharField(max_length=200)
-    price = fields.AutoAdminDecimalField(max_digits=10, decimal_places=2)
-    available = fields.AutoAdminBooleanField(default=True)
+    name = fields.AutoAdminCharField(max_length=200, verbose_name=_("Name"))
+    price = fields.AutoAdminDecimalField(max_digits=10, decimal_places=2, verbose_name=_("Price"))
+    available = fields.AutoAdminBooleanField(default=True, verbose_name=_("Available"))
+
+    @admin.display(description=_("Name (Bold)"))
+    def bold_name(self, obj):
+        return format_html("<b>{}</b>", obj.name)
+
+    admin_overrides = {
+        "bold_name": bold_name,
+        "list_display": ["formatted_id", "bold_name", "price", "available"]
+    }
+
+    class Meta:
+        verbose_name = _("Product")
+        verbose_name_plural = _("Products")
 
 
 class Customer(models.AutoAdminModel):
-    first_name = fields.AutoAdminCharField(max_length=100)
-    last_name = fields.AutoAdminCharField(max_length=100)
-    email = fields.AutoAdminEmailField(show_in_list=False, max_length=200)
-    active = fields.AutoAdminBooleanField(default=True)
+    first_name = fields.AutoAdminCharField(max_length=100, verbose_name=_("First Name"))
+    last_name = fields.AutoAdminCharField(max_length=100, verbose_name=_("Last Name"))
+    email = fields.AutoAdminEmailField(show_in_list=False, max_length=200, verbose_name=_("Email"))
+    active = fields.AutoAdminBooleanField(default=True, verbose_name=_("Is Active"))
+
+    class Meta:
+        verbose_name = _("Customer")
+        verbose_name_plural = _("Customers")
