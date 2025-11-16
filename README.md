@@ -12,14 +12,6 @@
 
 ## Installation
 
-Install via pip:
-
-```bash
-pip install drofji_automatically_django_admin
-```
-
-## Installation
-
 ### From PyPI
 
 Install the stable release from PyPI:
