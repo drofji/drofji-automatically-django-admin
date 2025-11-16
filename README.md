@@ -106,6 +106,58 @@ class Customer(drofji_models.AutoAdminModel):
 - Add `rangefilter` and `drofji_automatically_django_admin` after `django.contrib.*`.  
 - Inherit your models from `AutoAdminModel` for full automation.  
 
+## Running the Example Project
+
+You can manually run the Django `example_project` included in this repository to test the admin features.
+
+1. Clone the repository and navigate to the project:
+
+```bash
+git clone https://github.com/yourusername/drofji-automatically-django-admin.git
+cd drofji-automatically-django-admin
+```
+
+2. Create a virtual environment (optional but recommended):
+
+```bash
+python -m venv .venv
+source .venv/bin/activate  # Linux/macOS
+.venv\Scripts\activate     # Windows
+```
+
+3. Install the package and Django:
+
+```bash
+pip install -e ..
+```
+
+4. Create the database migrations:
+
+```bash
+python manage.py makemigrations
+python manage.py migrate
+```
+
+5. Create a superuser to access the admin:
+
+```bash
+python manage.py createsuperuser
+```
+
+Follow the prompts to set a username, email, and password.
+
+6. Run the development server:
+
+```bash
+python manage.py runserver
+```
+
+7. Open the Django admin:
+
+Go to http://127.0.0.1:8000/admin/ in your browser and log in with the superuser credentials.
+
+You should now see the auto-generated admin interface for the models provided by `drofji_automatically_django_admin`.
+
 ## Links
 
 - [drofji Automatically Django Admin (PyPI)](https://pypi.org/project/drofji-automatically-django-admin/)  
