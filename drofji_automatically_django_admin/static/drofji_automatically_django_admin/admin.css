@@ -1,0 +1,28 @@
+.faded-zeros {
+    opacity: 30%;
+}
+th.field-formatted_id a,
+td.field-formatted_id a {
+    display: inline-block;
+    padding: 2px 4px;
+    border-radius: 4px;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    background-color: rgba(100, 100, 100, 0.1);
+    border: 1px solid rgba(100, 100, 100, 0.3);
+}
+th.field-formatted_id a:hover,
+td.field-formatted_id a:hover {
+    border-color: rgba(50, 50, 50, 0.5);
+}
+#changelist-form table tbody tr {
+    cursor: pointer;
+}
+.results table tr {
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+.results table tr:hover {
+    background-color: rgba(80, 80, 80, 0.08);
+    border-top: 1px solid rgba(40, 40, 40, 0.35);
+    border-bottom: 1px solid rgba(40, 40, 40, 0.35);
+}
