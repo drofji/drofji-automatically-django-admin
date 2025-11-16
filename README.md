@@ -55,6 +55,8 @@ Add the following apps to your `INSTALLED_APPS` in `settings.py` (order matters)
 1. Inherit your models from `AutoAdminModel`:
 
 ```python
+# example_app/models.py
+
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from drofji_automatically_django_admin import drofji_models, drofji_fields
@@ -73,6 +75,8 @@ class Customer(drofji_models.AutoAdminModel):
 You can override any `ModelAdmin` attribute or method directly from your model using `admin_overrides`:
 
 ```python
+# example_app/models.py
+
 from django.contrib import admin
 from django.utils.html import format_html
 from django.utils.translation import gettext_lazy as _
