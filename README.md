@@ -105,7 +105,7 @@ You can manually run the Django `example_project` included in this repository to
 1. Clone the repository and navigate to the project:
 
 ```bash
-git clone https://github.com/yourusername/drofji-automatically-django-admin.git
+git clone https://github.com/drofji/drofji-automatically-django-admin.git
 cd drofji-automatically-django-admin
 ```
 
