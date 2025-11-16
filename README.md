@@ -120,7 +120,7 @@ source .venv/bin/activate  # Linux/macOS
 3. Install the package and Django:
 
 ```bash
-pip install -e ..
+pip install -e .
 ```
 
 4. Create the database migrations:
