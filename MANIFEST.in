@@ -1,0 +1,2 @@
+include drofji_automatically_django_admin/static/*
+recursive-include drofji_automatically_django_admin/static *
