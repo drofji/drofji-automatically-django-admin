@@ -6,7 +6,7 @@ setup(
     packages=find_packages(),
     include_package_data=True,
     install_requires=[
-        "Django>=5.2",
+        "Django>=4.2",
         "django-admin-rangefilter~=0.13.3",
         "django-admin-interface~=0.28.9",
         "django-colorfield~=0.11.0",
