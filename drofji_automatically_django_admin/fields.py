@@ -36,6 +36,48 @@ class AutoAdminTextField(models.TextField):
         self.editable = editable
 
 
+class AutoAdminFileField(models.FileField):
+    def __init__(self, *args,
+                 show_in_list=False,
+                 searchable=False,
+                 filterable=False,
+                 editable=True,
+                 **kwargs):
+        super().__init__(*args, **kwargs)
+        self.show_in_list = show_in_list
+        self.searchable = searchable
+        self.filterable = filterable
+        self.editable = editable
+
+
+class AutoAdminFilePathField(models.FilePathField):
+    def __init__(self, *args,
+                 show_in_list=False,
+                 searchable=False,
+                 filterable=False,
+                 editable=True,
+                 **kwargs):
+        super().__init__(*args, **kwargs)
+        self.show_in_list = show_in_list
+        self.searchable = searchable
+        self.filterable = filterable
+        self.editable = editable
+
+
+class AutoAdminJSONField(models.JSONField):
+    def __init__(self, *args,
+                 show_in_list=False,
+                 searchable=False,
+                 filterable=False,
+                 editable=True,
+                 **kwargs):
+        super().__init__(*args, **kwargs)
+        self.show_in_list = show_in_list
+        self.searchable = searchable
+        self.filterable = filterable
+        self.editable = editable
+
+
 class AutoAdminIntegerField(models.IntegerField):
     def __init__(self, *args,
                  show_in_list=True,
