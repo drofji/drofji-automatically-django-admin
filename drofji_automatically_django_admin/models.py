@@ -70,7 +70,11 @@ class AutoAdminModel(models.Model):
     # -------------------------------------------------------
     @classmethod
     def get_admin_fields(cls):
-        fields = [f for f in cls._meta.get_fields() if hasattr(f, "name")]
+        fields = [
+            f
+            for f in cls._meta.get_fields()
+            if hasattr(f, "name") and not (f.one_to_many or f.one_to_one or f.many_to_many) or isinstance(f, models.Field)
+        ]
 
         # --- list_display
         list_display = [f.name for f in fields if getattr(f, "show_in_list", True)]
