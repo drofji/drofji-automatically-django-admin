@@ -127,7 +127,7 @@ class AutoAdminModel(models.Model):
             "search_fields": search_fields,
             "list_filter": list_filter,
             "formatted_id": formatted_id,  # Custom ID formatting
-            "get_list_display": get_list_display,  # Replace "id" with formatted_id
+            # "get_list_display": get_list_display,  # Replace "id" with formatted_id
             "Media": type("Media", (), {
                 "css": {"all": ("drofji_automatically_django_admin/admin.css",)},
                 "js": ("drofji_automatically_django_admin/admin.js",)
