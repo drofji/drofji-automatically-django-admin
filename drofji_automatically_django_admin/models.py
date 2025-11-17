@@ -39,13 +39,13 @@ def formatted_id(obj):
 def get_list_display(self, request):
     base = list(super(self.__class__, self).get_list_display(request))
 
-    # do nothing if formatted_id already present
-    if "formatted_id" in base:
-        return base
-
-    # replace "id" with "formatted_id"
-    if "id" in base:
-        base[base.index("id")] = "formatted_id"
+    # # do nothing if formatted_id already present
+    # if "formatted_id" in base:
+    #     return base
+    #
+    # # replace "id" with "formatted_id"
+    # if "id" in base:
+    #     base[base.index("id")] = "formatted_id"
 
     return base
 
