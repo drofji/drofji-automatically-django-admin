@@ -13,7 +13,6 @@ try:
 except ImportError:
     RANGEFILTER_AVAILABLE = False
 
-
 # ---------------------------------------------
 #  ID formatter (HTML: faded zeros)
 # ---------------------------------------------
@@ -39,8 +38,20 @@ def formatted_id(obj):
 # ---------------------------------------------
 def get_list_display(self, request):
     base = list(super(self.__class__, self).get_list_display(request))
+
+    # # do nothing if formatted_id already present
+    # if "formatted_id" in base:
+    #     return base
+    #
+    # # replace "id" with "formatted_id"
+    # if "id" in base:
+    #     base[base.index("id")] = "formatted_id"
+
     return base
 
+# ===========================================================
+# Base model with automatic admin registration
+# ===========================================================
 
 # ===========================================================================================
 #                                      AutoAdminModel
@@ -59,16 +70,24 @@ class AutoAdminModel(models.Model):
     # -------------------------------------------------------
     @classmethod
     def get_admin_fields(cls):
-        fields = [f for f in cls._meta.get_fields() if hasattr(f, "name")]
+        fields = [
+            f
+            for f in cls._meta.get_fields()
+            if hasattr(f, "name") and not (f.one_to_many or f.one_to_one or f.many_to_many) or isinstance(f, models.Field)
+        ]
 
-        # list_display
+        # --- list_display
         list_display = [f.name for f in fields if getattr(f, "show_in_list", True)]
 
-        # search_fields
+        # Admin formatting handled later by get_list_display()
+        # (we do NOT replace id here)
+
+        # --- search fields
         search_fields = [f.name for f in fields if getattr(f, "searchable", False)]
 
-        # filters
+        # --- filters
         list_filter = []
+
         for f in fields:
             if not getattr(f, "filterable", False):
                 continue
@@ -84,20 +103,16 @@ class AutoAdminModel(models.Model):
 
                 if isinstance(f, (AutoAdminDateField, AutoAdminDateTimeField)):
                     list_filter.append((f.name, DateRangeFilter))
+
                 elif isinstance(f, (AutoAdminIntegerField, AutoAdminFloatField, AutoAdminDecimalField)):
                     list_filter.append((f.name, NumericRangeFilter))
+
                 else:
                     list_filter.append(f.name)
             else:
                 list_filter.append(f.name)
 
-        # NEW — autocomplete_fields (FK / M2M с атрибутом autocomplete=True)
-        autocomplete_fields = [
-            f.name for f in fields
-            if hasattr(f, "remote_field") and getattr(f, "autocomplete", False)
-        ]
-
-        return list_display, search_fields, list_filter, autocomplete_fields
+        return list_display, search_fields, list_filter
 
     # -------------------------------------------------------
     # Register the model in admin
@@ -107,30 +122,38 @@ class AutoAdminModel(models.Model):
         if not cls.admin_enabled:
             return
 
-        # Получаем базовые настройки админки
-        list_display, search_fields, list_filter, autocomplete_fields = cls.get_admin_fields()
+        # Get default admin fields from the model
+        list_display, search_fields, list_filter = cls.get_admin_fields()
 
+        # Base attributes for the dynamic ModelAdmin
         admin_attrs = {
             "list_display": list_display,
             "search_fields": search_fields,
             "list_filter": list_filter,
-            "autocomplete_fields": autocomplete_fields,
-            "formatted_id": formatted_id,
-            "get_list_display": get_list_display,
+            "formatted_id": formatted_id,  # Custom ID formatting
+            # "get_list_display": get_list_display,  # Replace "id" with formatted_id
             "Media": type("Media", (), {
                 "css": {"all": ("drofji_automatically_django_admin/admin.css",)},
                 "js": ("drofji_automatically_django_admin/admin.js",)
-            })
+            })  # Include custom CSS/JS for admin
         }
 
-        # Model overrides if provided
+        # -------------------------------------------------
+        # Apply model-defined admin overrides
+        # admin_overrides = { "method_or_attr_name": callable_or_value }
+        # -------------------------------------------------
         overrides = getattr(cls, "admin_overrides", {})
         for name, value in overrides.items():
             admin_attrs[name] = value
 
-        # Create dynamic ModelAdmin class
-        admin_class = type(f"{cls.__name__}Admin", (admin.ModelAdmin,), admin_attrs)
+        # Create a dynamic ModelAdmin class
+        admin_class = type(
+            f"{cls.__name__}Admin",
+            (admin.ModelAdmin,),
+            admin_attrs
+        )
 
+        # Register the model with Django admin
         try:
             admin.site.register(cls, admin_class)
         except admin.sites.AlreadyRegistered:
