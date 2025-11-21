@@ -180,12 +180,14 @@ class AutoAdminForeignKey(models.ForeignKey):
                  searchable=True,
                  filterable=True,
                  editable=True,
+                 autocomplete=False,
                  **kwargs):
         super().__init__(*args, **kwargs)
         self.show_in_list = show_in_list
         self.searchable = searchable
         self.filterable = filterable
         self.editable = editable
+        self.autocomplete = autocomplete
 
 
 class AutoAdminEmailField(models.EmailField):
