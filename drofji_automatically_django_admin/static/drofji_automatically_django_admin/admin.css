@@ -26,3 +26,20 @@ td.field-formatted_id a:hover {
     border-top: 1px solid rgba(40, 40, 40, 0.35);
     border-bottom: 1px solid rgba(40, 40, 40, 0.35);
 }
+div.fieldBox.flex-container {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+}
+div.fieldBox.flex-container label {
+    width: auto !important;
+    max-width: 100% !important;
+    float: none !important;
+    margin-bottom: 5px !important;
+    display: block !important;
+}
+div.fieldBox.flex-container p {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+}
