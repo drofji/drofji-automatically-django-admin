@@ -15,6 +15,7 @@ setup(
         "django-cors-headers~=4.4.0",
         "django-crontab~=0.7.1",
         "django-datepick~=0.1.2",
+        "django-admin-autocomplete-filter~=0.7.1"
     ],
 
     classifiers=[

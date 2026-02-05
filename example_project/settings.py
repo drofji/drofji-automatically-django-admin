@@ -11,6 +11,7 @@ ALLOWED_HOSTS = []
 INSTALLED_APPS = [
     'admin_interface',
     'colorfield',
+    'admin_auto_filters',
 
     'django.contrib.admin',
     'django.contrib.auth',

@@ -1,6 +1,8 @@
 import typing
+from random import choice
 
 from django.db import models
+from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 from drofji_automatically_django_admin import validators
 from django import forms
@@ -42,10 +44,18 @@ class AutoAdminCharField(models.CharField, AutoAdminField):
                  editable=True,
                  **kwargs):
         super().__init__(*args, **kwargs)
+
         self.show_in_list = show_in_list
         self.searchable = searchable
         self.filterable = filterable
         self.editable = editable
+
+        autocomplete = kwargs.get('autocomplete')
+
+        if autocomplete is None:
+            self.autocomplete = True if kwargs.get('choices') else False
+        else:
+            self.autocomplete = autocomplete
 
 
 class AutoAdminTextField(models.TextField, AutoAdminField):
@@ -195,11 +205,17 @@ class AutoAdminDateField(models.DateField, AutoAdminField):
                  filterable=True,
                  editable=True,
                  **kwargs):
+
+        auto_now = kwargs.get('auto_now', False)
+        auto_now_add = kwargs.get('auto_now_add', False)
+
+        if not (auto_now or auto_now_add):
+            kwargs['editable'] = editable
+
         super().__init__(*args, **kwargs)
         self.show_in_list = show_in_list
         self.searchable = searchable
         self.filterable = filterable
-        self.editable = editable
 
 
 class AutoAdminTimeField(models.TimeField, AutoAdminField):
@@ -209,11 +225,17 @@ class AutoAdminTimeField(models.TimeField, AutoAdminField):
                  filterable=True,
                  editable=True,
                  **kwargs):
+
+        auto_now = kwargs.get('auto_now', False)
+        auto_now_add = kwargs.get('auto_now_add', False)
+
+        if not (auto_now or auto_now_add):
+            kwargs['editable'] = editable
+
         super().__init__(*args, **kwargs)
         self.show_in_list = show_in_list
         self.searchable = searchable
         self.filterable = filterable
-        self.editable = editable
 
 
 class AutoAdminDateTimeField(models.DateTimeField, AutoAdminField):
@@ -223,11 +245,17 @@ class AutoAdminDateTimeField(models.DateTimeField, AutoAdminField):
                  filterable=True,
                  editable=True,
                  **kwargs):
+
+        auto_now = kwargs.get('auto_now', False)
+        auto_now_add = kwargs.get('auto_now_add', False)
+
+        if not (auto_now or auto_now_add):
+            kwargs['editable'] = editable
+
         super().__init__(*args, **kwargs)
         self.show_in_list = show_in_list
         self.searchable = searchable
         self.filterable = filterable
-        self.editable = editable
 
 
 class AutoAdminForeignKey(models.ForeignKey):
@@ -236,7 +264,7 @@ class AutoAdminForeignKey(models.ForeignKey):
                  searchable=True,
                  filterable=True,
                  editable=True,
-                 autocomplete=False,
+                 autocomplete=True,
                  **kwargs):
         super().__init__(*args, **kwargs)
         self.show_in_list = show_in_list
@@ -280,3 +308,70 @@ class AutoAdminFunctionField(AutoAdminNotDatabaseField):
             from django.utils.safestring import mark_safe
             return mark_safe(value)
         return value
+
+
+class AutoAdminStatusBadgeFieldChoice:
+    def __init__(
+            self, status_string: str,
+            text_html_color="#333333",
+            background_html_color="#F5F5F5",
+            border_html_color="#A9A9A9"):
+        self.status_string = status_string
+        self.text_html_color = text_html_color
+        self.background_html_color = background_html_color
+        self.border_html_color = border_html_color
+
+    def get_html_choice(self, field_display, style_arguments: dict):
+
+        styles = {
+            'color': self.text_html_color,
+            'padding': '3px',
+            'padding-left': '10px',
+            'padding-right': '10px',
+            'white-space': 'nowrap',
+            'border-radius': '25px',
+            'background-color': self.background_html_color,
+            'border': f'2px solid {self.border_html_color}',
+        }
+        styles.update(style_arguments)
+        style_string = "; ".join([f"{k}: {v}" for k, v in styles.items()])
+
+        formated_html = format_html(
+            '<a style="{}">{}</a>',
+            style_string,
+            field_display
+        )
+        return formated_html
+
+
+class AutoAdminStatusBadgeField(AutoAdminFunctionField):
+    def __init__(self, *args,
+                 field_name=None,
+                 choices: typing.List[AutoAdminStatusBadgeFieldChoice],
+                 verbose_name=None,
+                 style_arguments: dict = None,
+                 **kwargs):
+
+        self.choices = choices
+        self.field_name = field_name
+        self.style_arguments = style_arguments or {}
+
+        super().__init__(
+            func=self.get_html_choice,
+            verbose_name=verbose_name,
+            safe_html=True,
+            *args, **kwargs
+        )
+
+    def get_html_choice(self, obj):
+
+        field_value = getattr(obj, self.field_name, "")
+        display_method_name = f"get_{self.field_name}_display"
+        display_method = getattr(obj, display_method_name, None)
+        field_display = display_method() if display_method else field_value
+
+        for choice in self.choices:
+            if choice.status_string == field_value:
+                return choice.get_html_choice(field_display, self.style_arguments)
+
+        return field_display

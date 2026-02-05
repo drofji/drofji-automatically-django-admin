@@ -1,18 +1,17 @@
 # drofji_automatically_django_admin/models.py
-
+from PIL.ImageCms import applyTransform
 from django.db import models
+from admin_auto_filters.filters import AutocompleteFilter
 from django.contrib import admin
 from django.apps import apps
+from django.db.models import DateField
 from django.utils.safestring import mark_safe
 from drofji_automatically_django_admin import fields as drofji_fields
-
-# Optional range filters
-try:
-    from rangefilter.filters import DateRangeFilter, NumericRangeFilter
-
-    RANGEFILTER_AVAILABLE = True
-except ImportError:
-    RANGEFILTER_AVAILABLE = False
+from drofji_automatically_django_admin.fields import (
+                            AutoAdminDateField, AutoAdminDateTimeField,
+                            AutoAdminIntegerField, AutoAdminFloatField, AutoAdminDecimalField
+                        )
+from rangefilter.filters import DateRangeFilter, NumericRangeFilter
 
 
 # -------------------------------------------------------
@@ -55,71 +54,91 @@ class AutoAdminModel(models.Model):
     # ---------------------------------------------------
     @classmethod
     def get_admin_fields(cls):
-        meta_fields = {f.name: f for f in cls._meta.get_fields() if hasattr(f, "name")}
+        meta_fields = {f.name: f for f in cls._meta.get_fields() if
+                       hasattr(f, "name") and not (f.one_to_many or f.one_to_one or f.many_to_many)}
+        meta_fields_related = {f.name: f for f in cls._meta.get_fields() if
+                       hasattr(f, "name") and (f.many_to_one or f.many_to_many)}
+        attr_fields = cls.__dict__
 
-        list_display = []
-        search_fields = []
+        #####################
+        #   SHOW IN FORM    #
+        #####################
+
+        form_fields = [fn for fn, fo in meta_fields.items() if getattr(fo, "show_in_form", True)]
+
+        #####################
+        #   SHOW IN LIST    #
+        #####################
+
+        list_display = [fn for fn, fo in meta_fields.items() if getattr(fo, "show_in_list", True)]
+
+        ###################
+        #   SEARCHABLE    #
+        ###################
+
+        search_fields = [fn for fn, fo in meta_fields.items() if getattr(fo, "searchable", False)]
+
+        ###################
+        #   FILTERABLE    #
+        ###################
+
         list_filter = []
-        autocomplete_fields = []
+        for meta_field_name, meta_field in meta_fields.items():
 
-        for attr_name in list(cls.__dict__.keys())[::-1]:
-            attr = getattr(cls, attr_name)
-            meta_field = meta_fields[attr_name] if attr_name in meta_fields.keys() else None
+            if not getattr(meta_field, "filterable", False):
+                continue
 
-            if isinstance(attr, (models.query_utils.DeferredAttribute, drofji_fields.AutoAdminField)):
+            if isinstance(meta_field, (models.DateField, models.DateTimeField, models.TimeField)):
+                list_filter.append((meta_field_name, DateRangeFilter))
 
-                if meta_field is not None and (not hasattr(meta_field,
-                                                           'name') or meta_field.one_to_many or meta_field.one_to_one or meta_field.many_to_many):
-                    continue
+            elif isinstance(meta_field, (models.IntegerField, models.FloatField, models.DecimalField)):
+                list_filter.append((meta_field_name, NumericRangeFilter))
 
-                if getattr(meta_field, "show_in_list", True):
-                    list_display.append(attr_name)
+            elif isinstance(meta_field, models.ForeignKey):
 
-                if getattr(meta_field, "searchable", False):
-                    search_fields.append(attr_name)
-                    print('add to search', attr_name)
+                filter_class_name = f"{meta_field_name.capitalize()}Filter"
+                DynamicFilter = type(filter_class_name, (AutocompleteFilter,), {
+                    'title': meta_field.verbose_name or meta_field_name,
+                    'field_name': meta_field_name,
+                })
+                if DynamicFilter not in list_filter:
+                    list_filter.append(DynamicFilter)
+            else:
+                list_filter.append(meta_field_name)
 
-                if getattr(meta_field, "filterable", False):
-                    if RANGEFILTER_AVAILABLE:
-                        from drofji_automatically_django_admin.fields import (
-                            AutoAdminDateField, AutoAdminDateTimeField,
-                            AutoAdminIntegerField, AutoAdminFloatField, AutoAdminDecimalField
-                        )
-                        if isinstance(meta_field, (AutoAdminDateField, AutoAdminDateTimeField)):
-                            list_filter.append((attr_name, DateRangeFilter))
-                        elif isinstance(meta_field,
-                                        (AutoAdminIntegerField, AutoAdminFloatField, AutoAdminDecimalField)):
-                            list_filter.append((attr_name, NumericRangeFilter))
-                        else:
-                            list_filter.append(attr_name)
-                    else:
-                        list_filter.append(attr_name)
+        #####################
+        #   AUTOCOMPLETE    #
+        #####################
 
-                if isinstance(attr, drofji_fields.AutoAdminFunctionField):
-                    method_name = f"{attr_name}"
+        autocomplete_fields = [fn for fn, fo in meta_fields_related.items() if getattr(fo, "autocomplete", True)]
 
-                    def make_func(f):
-                        @admin.display(description=getattr(f, 'verbose_name', '') or getattr(f, 'name', ''))
-                        def _func(self, obj):
-                            value_to_display = f.get_display_value(obj)
-                            return value_to_display
+        ########################
+        #   FUNCTION FIELDS    #
+        ########################
 
-                        return _func
+        for attr_field_name, attr_field in list(attr_fields.items()):
 
-                    cls.admin_overrides = getattr(cls, 'admin_overrides', {})
-                    cls.admin_overrides[method_name] = make_func(attr)
+            if isinstance(attr_field, drofji_fields.AutoAdminFunctionField):
+                method_name = f"autoAdminFunctionField{str(attr_field_name).capitalize()}"
 
-                # FK/M2M autocomplete support
-                autocomplete_fields = [
-                    f.name for n, f in meta_fields.items()
-                    if hasattr(f, "remote_field") and getattr(f, "autocomplete", False)
-                ]
+                def make_func(f):
+                    @admin.display(description=getattr(f, 'verbose_name', '') or getattr(f, 'name', ''))
+                    def _func(self, obj):
+                        value_to_display = f.get_display_value(obj)
+                        return value_to_display
 
-            if 'id' in list_display:
-                list_display.remove('id')
-                list_display.insert(0, 'id')
+                    return _func
 
-        return list_display, search_fields, list_filter, autocomplete_fields
+                if not hasattr(cls, 'admin_overrides'):
+                    cls.admin_overrides = {}
+                cls.admin_overrides[method_name] = make_func(attr_field)
+                list_display.append(method_name)
+
+        if 'id' in list_display:
+            list_display.remove('id')
+            list_display.insert(0, 'id')
+
+        return form_fields, list_display, search_fields, list_filter, autocomplete_fields
 
     # ---------------------------------------------------
     # Register model in Django admin
@@ -130,14 +149,22 @@ class AutoAdminModel(models.Model):
             return
 
         # Get fields
-        list_display, search_fields, list_filter, autocomplete_fields = cls.get_admin_fields()
+        fields, list_display, search_fields, list_filter, autocomplete_fields = cls.get_admin_fields()
 
         class Media:
             css = {"all": getattr(cls, "admin_css", [])}
             js = getattr(cls, "admin_js", [])
 
-        result_js_files = {"drofji_automatically_django_admin/admin.js"}
-        result_css_files = {"drofji_automatically_django_admin/admin.css"}
+        result_js_files = {
+            "admin/js/vendor/jquery/jquery.js",
+            "admin/js/jquery.init.js",
+            "https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js",
+            "drofji_automatically_django_admin/admin.js"
+        }
+        result_css_files = {
+            "drofji_automatically_django_admin/admin.css",
+            "https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css",
+        }
 
         js_to_add = getattr(cls, 'js_admin_files', [])
         if isinstance(js_to_add, (list, tuple, set)):

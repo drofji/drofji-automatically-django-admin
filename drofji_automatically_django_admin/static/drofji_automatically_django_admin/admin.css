@@ -43,3 +43,50 @@ div.fieldBox.flex-container p {
     padding: 0 !important;
     width: 100% !important;
 }
+/* drofji_admin/static/drofji_admin/admin.css */
+
+/* 1. Центрируем сам контейнер в боковой панели */
+.django-select2-container {
+    display: block !important;
+    margin: 10px auto !important; /* Отступы сверху/снизу и центровка */
+    width: 90% !important;
+    float: none !important;
+}
+
+/* 2. Вертикальное выравнивание внутри рамки (Middle) */
+.django-select2-container .select2-selection--single {
+    height: 32px !important; /* Фиксированная высота */
+    display: flex !important;
+    align-items: center !important; /* ВЫРАВНИВАНИЕ ПО ЦЕНТРУ (ВЕРТИКАЛЬ) */
+    border: 1px solid var(--border-color, #ccc) !important;
+    background-color: var(--body-bg, #fff) !important;
+    border-radius: 4px !important;
+}
+
+/* 3. Выравнивание текста */
+.django-select2-container .select2-selection__rendered {
+    /* Обнуляем line-height, так как используем flex-box выше */
+    line-height: normal !important;
+    padding-left: 12px !important;
+    padding-right: 25px !important;
+    text-align: left !important; /* Текст внутри прижат влево */
+    width: 100% !important;
+    color: var(--body-fg, #333) !important;
+}
+
+/* 4. Центрируем иконку стрелочки */
+.django-select2-container .select2-selection__arrow {
+    height: 100% !important; /* На всю высоту контейнера */
+    top: 0 !important;
+    right: 8px !important;
+    display: flex !important;
+    align-items: center !important; /* Центрируем стрелочку вертикально */
+}
+
+/* 5. Убираем дефолтные смещения Django для списков в фильтрах */
+#changelist-filter li {
+    text-align: center !important;
+    display: flex !important;
+    justify-content: center !important;
+    padding: 2px 0 !important;
+}

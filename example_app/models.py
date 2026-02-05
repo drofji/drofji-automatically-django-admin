@@ -45,6 +45,42 @@ class Customer(drofji_models.AutoAdminModel):
         max_length=100,
         verbose_name=_("Last Name")
     )
+    origin = drofji_fields.AutoAdminCharField(
+        max_length=100,
+        verbose_name=_("Origin"),
+        choices=[
+            ('status_a', 'Status A'),
+            ('status_b', 'Status B'),
+            ('status_c', 'Status C')
+        ],
+        show_in_list=False,
+        filterable=True
+    )
+    origin_display = drofji_fields.AutoAdminStatusBadgeField(
+        field_name='origin',
+        verbose_name=_("Origin 1"),
+        choices=[
+            drofji_fields.AutoAdminStatusBadgeFieldChoice(
+                'status_a',
+                text_html_color='#721C24',
+                background_html_color='#F8D7DA',
+                border_html_color='#F5C6CB'
+            ),
+            drofji_fields.AutoAdminStatusBadgeFieldChoice(
+                'status_b',
+                text_html_color='#856404',
+                background_html_color='#FFF3CD',
+                border_html_color='#FFEEBA'
+            ),
+            drofji_fields.AutoAdminStatusBadgeFieldChoice(
+                'status_c',
+                text_html_color='#155724',
+                background_html_color='#D4EDDA',
+                border_html_color='#C3E6CB'
+            ),
+        ],
+        style_arguments={}
+    )
     email = drofji_fields.AutoAdminEmailField(
         show_in_list=False,
         max_length=200,
@@ -70,7 +106,8 @@ class Order(drofji_models.AutoAdminModel):
     total = drofji_fields.AutoAdminDecimalField(
         max_digits=10,
         decimal_places=2,
-        verbose_name=_("Total")
+        verbose_name=_("Total"),
+        filterable=True
     )
     config = drofji_fields.AutoAdminFileField(
         verbose_name=_("Configuration"),
